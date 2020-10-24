@@ -14,15 +14,14 @@ def sort_category_position(by_category:List[Tuple[Optional[discord.CategoryChann
     categories_sorted_children = []
     for category, channels in by_category:
         if category is None:
-            categories_sorted_children.append((None,[channels]))
+            categories_sorted_children.append((None,channels))
         else:
             categories_sorted_children.append((category, sorted(channels, key=lambda channel: channel.position)))
 
     def sort_channel_key(category_and_channels):
         category, channels = category_and_channels
         if category is None:
-            print(channels)
-            return channels[0].position
+            return -1
         else:
             return category.position
 
