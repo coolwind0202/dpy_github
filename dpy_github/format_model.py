@@ -7,6 +7,8 @@ import discord
 from . import i18n
 
 class BaseFormatter(ABC):
+    """Discordモデルを文字列に整形する動作の抽象基底クラス。
+    """
     @abstractmethod
     def format_channel(self, channel: discord.abc.GuildChannel) -> str:
         pass
@@ -101,7 +103,7 @@ class DefaultFormatter(BaseFormatter):
         guild_data = {
             i18n.Guild.Region: i18n.GeneralConverter.region_name(guild.region),
             i18n.Guild.AfkTimeout: guild.afk_timeout,
-            i18n.Guild.AfkChannelID: guild.afk_channel.id,
+            i18n.Guild.AfkChannelID: guild.afk_channel.id if guild.afk_channel is not None else "",
             i18n.Guild.IconURL: str(guild.icon_url),
             i18n.Guild.OwnerID: guild.owner_id,
             i18n.Guild.BannerURL: str(guild.banner_url),
