@@ -47,7 +47,7 @@ class Reporter:
                 self.repository: github.Repository = self.github_client.get_user().create_repo(repository_name,auto_init=True)
 
 
-    def create_index_content(self, by_category, members, roles, template_path="./template.md"):
+    def create_index_content(self, by_category, members, roles, template_path="../template.md"):
         channel_text_list = []
         channel_url_base = f"{self.repository.html_url}/blob/{self.branch_name}/channels"
         for category, channels in by_category:
