@@ -6,6 +6,7 @@ with open("requirements.txt") as f:
 
 setup(
     name="dpy_github",
+    packages=["dpy_github"]
     author="coolwind0202",
     version="1.0.0",
     url="https://github.com/coolwind0202/dpy_github",
