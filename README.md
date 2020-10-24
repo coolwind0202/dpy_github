@@ -50,7 +50,9 @@ reporter = dpy_github.Reporter()
 ```
 
 が、Discordサーバーの情報を記録するためのクラスになります。
+
 guild引数に記録したいサーバー（discord.Guild）、github_tokenに先ほど取得したようなGitHubのアクセストークン、repository_nameには記録先のリポジトリ名を指定してください。
+
 これらの引数は Reporter() インスタンスを生成する際に必須になります。
 
 なお、allow_new_repository は「もし repository_name と同名のリポジトリが見つからなければ repository_name という名前で新しくリポジトリを新規作成するか」です。もしTrueであれば新規作成を許可します。
@@ -60,6 +62,7 @@ url = reporter.push()
 ```
 
 で実際にサーバー情報を記録します。正常に完了すると、リポジトリのGitHub上でのURLが返却されます。
+
 commit_title引数を渡すと、その内容をメッセージとして使用しコミットを作成します。もし渡されなければ「commit」という文字列がデフォルトで使用されます。
 
 下記のリンクはこのコードで生成されたコミットの差分表示の一例です。
