@@ -78,9 +78,11 @@ class Reporter:
             for channel in channels:
                 if category is None:
                     channel_url = f"{channel_url_base}/{channel.id}.json"
+                    channel_text_list.append(f"- [{channel.name}]({channel_url}) *[{channel.type[0]}]*")
                 else:
                     channel_url = f"{channel_url_base}/{category.id}/{channel.id}.json"
-                channel_text_list.append(f"\t- [{channel.name}]({channel_url}) *[{channel.type[0]}]*")
+                    channel_text_list.append(f"\t- [{channel.name}]({channel_url}) *[{channel.type[0]}]*")
+                
 
         member_text_list = []
         for member in members:
