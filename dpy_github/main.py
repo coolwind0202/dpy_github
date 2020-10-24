@@ -9,30 +9,45 @@ from . import util
 from . import create_elements
 
 class Reporter:
-    """
-    GitHubへDiscordサーバー情報の記録を行います。
-    """
-    def __init__(self, guild: discord.Guild, github_token: str, repository_name:str,**kwargs):
-        self.branch_name = kwargs.get("branch_name", "main")
-        self.element_creator = kwargs.get("element_creator")
-        if not isinstance(self.element_creator, create_elements.GitTreeElementCreator):
-            if self.element_creator is None:
+    """Discordサーバーの情報をGitHubに記録する起点。
+    """    
+    
+    def __init__(self, guild: discord.Guild, github_token: str, repository_name:str, 
+        branch_name:str="main", element_creator:create_elements.GitTreeElementCreator=None, allow_new_repository=False):
+        """[summary]
+        Args:
+            guild (discord.Guild): 記録を行うサーバー。
+            github_token (str): GitHubアカウントのアクセストークン。
+            repository_name (str): リポジトリ名。
+            branch_name (str, optional): 記録を行うブランチ名. Defaults to "main".
+            element_creator (create_elements.GitTreeElementCreator, optional): GitTreeの生成を行うオブジェクト。 Defaults to None.
+            allow_new_repository (str, optional): もし repository_name に該当するリポジトリが見つからなかったとき、Trueなら新規作成します。
+
+        Raises:
+            NotImplementedError: element_creator は create_elements.GitTreeElementCreator を実装している必要があります。
+        """        
+        self.branch_name = branch_name
+        if not isinstance(element_creator, create_elements.GitTreeElementCreator):
+            if element_creator is None:
                 self.element_creator = create_elements.DefaultTreeCreator()
             else:
                 raise NotImplementedError(
-                    "element_creator は create_elements.GitTreeElementCreatorを継承している必要があります。"
+                    "element_creator は create_elements.GitTreeElementCreatorを実装している必要があります。"
                     )
         self.ref_name = "heads/" + self.branch_name
 
         self.guild = guild
         self.github_client = github.Github(github_token)
-        self.repository: github.Repository = self.github_client.get_user().get_repo(repository_name)
+        try:
+            self.repository: github.Repository = self.github_client.get_user().get_repo(repository_name)
+        except github.UnknownObjectException:
+            if not allow_new_repository:
+                raise ValueError(f"{repository_name} という名前のリポジトリは見つかりませんでした。")
+            else:
+                self.repository: github.Repository = self.github_client.get_user().create_repo(repository_name,auto_init=True)
 
-    def create_index_content(self, by_category, members, roles, template_path="template.md"):
-        """
-        index.mdの内容を作成します。
-        """
 
+    def create_index_content(self, by_category, members, roles, template_path=r"dpy_github\template.md"):
         channel_text_list = []
         channel_url_base = f"{self.repository.html_url}/blob/{self.branch_name}/channels"
         for category, channels in by_category:
@@ -63,10 +78,12 @@ class Reporter:
             ROLE_LIST="\n".join(role_text_list), MEMBER_LIST="\n".join(member_text_list)
         )
 
-    def create_git_tree(self):
-        """
-        サーバー情報を元にInputGitTreeElementを作成しGitTreeにまとめます。
-        """
+    def create_git_tree(self) -> github.GitTree:
+        """element_creatorを利用してgithub.GitTreeを作成し返します。
+
+        Returns:
+            github.GitTree: 作成されたGitTree。
+        """        
         channel_elements = []
         sorted_by_category = util.sort_category_position(self.guild.by_category())
         for category, channels in sorted_by_category:
@@ -93,17 +110,21 @@ class Reporter:
         tree = self.repository.create_git_tree(channel_elements + role_elements + member_elements + [index_element, guild_element])
         return tree
 
-    def push(self,**kwargs) -> str:
-        """
-        GitHub上にコミットを作成しサーバー設定を反映します。
-        作成後、リポジトリURLを返却します。
-        """
+    def push(self,commit_title="commit") -> str:
+        """GitHubに実際にサーバー情報を保存します。
+
+        Args:
+            commit_title (str, optional): コミットのタイトルです。 Defaults to "commit".
+
+        Returns:
+            str: 編集を行ったリポジトリのGitHub上のURL。
+        """        
         tree = self.create_git_tree()
 
         repo = self.repository
         ref = repo.get_git_ref(self.ref_name)
         
         parents = [repo.get_git_commit(c.sha) for c in repo.get_commits()]
-        commit = repo.create_git_commit(kwargs.get("commit_title","commit"),tree,parents)
+        commit = repo.create_git_commit(commit_title,tree,parents)
         ref.edit(commit.sha,force=True)
         return repo.html_url
