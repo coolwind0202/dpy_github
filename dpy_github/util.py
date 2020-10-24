@@ -21,6 +21,7 @@ def sort_category_position(by_category:List[Tuple[Optional[discord.CategoryChann
     def sort_channel_key(category_and_channels):
         category, channels = category_and_channels
         if category is None:
+            print(channels)
             return channels[0].position
         else:
             return category.position
