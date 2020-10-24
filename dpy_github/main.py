@@ -5,8 +5,8 @@ from string import Template
 import github
 import discord
 
-import util
-import create_elements
+from . import util
+from . import create_elements
 
 class Reporter:
     """
