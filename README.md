@@ -1,0 +1,2 @@
+# dpy_github
+Discordのサーバー設定変更をGitHub上で差分確認できるようにするDiscord.py製bot
