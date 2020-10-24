@@ -9,6 +9,25 @@ import discord
 from . import util
 from . import create_elements
 
+index_template = """
+# $GUILD_NAME
+このページは各データにアクセスするための目次ページです。
+オブジェクトに対する変更をGitHub側の差分機能で正確に検知するため、デフォルトの実装では各ファイルは該当オブジェクトのIDを名前としているため、このようなページを自動生成しています。
+また、デフォルトの実装では各オブジェクトを JSON 形式で保存しています。
+
+## チャンネル一覧
+
+$CHANNEL_LIST
+
+## ロール一覧
+
+$ROLE_LIST
+
+## メンバー一覧
+
+$MEMBER_LIST
+"""
+
 class Reporter:
     """Discordサーバーの情報をGitHubに記録する起点。
     """    
@@ -48,8 +67,7 @@ class Reporter:
                 self.repository: github.Repository = self.github_client.get_user().create_repo(repository_name,auto_init=True)
 
 
-    def create_index_content(self, by_category, members, roles, template_path="template.md"):
-        print(os.getcwd())
+    def create_index_content(self, by_category, members, roles, template_path=""):
         channel_text_list = []
         channel_url_base = f"{self.repository.html_url}/blob/{self.branch_name}/channels"
         for category, channels in by_category:
@@ -71,9 +89,12 @@ class Reporter:
             role_url = f"{self.repository.html_url}/blob/{self.branch_name}/roles/{role.id}.json"
             role_text_list.append(f"- [{role.name}]({role_url})")
             
-        with open(template_path, "r",encoding="utf-8") as f:
-            lines = f.readlines()
-        template = Template("\n".join(lines))
+        if template_path:
+            with open(template_path, "r",encoding="utf-8") as f:
+                lines = f.readlines()
+            template = Template("\n".join(lines))
+        else:
+            template = Template(index_template)
 
         return template.substitute(
             GUILD_NAME=self.guild.name, CHANNEL_LIST="\n".join(channel_text_list), 
