@@ -4,7 +4,7 @@ from typing import List
 from github import InputGitTreeElement
 import discord
 
-import format_model
+from . import format_model
 
 class GitTreeElementCreator(ABC):
     """
