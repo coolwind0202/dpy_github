@@ -29,6 +29,9 @@ class Reporter:
         self.repository: github.Repository = self.github_client.get_user().get_repo(repository_name)
 
     def create_index_content(self, by_category, members, roles, template_path="template.md"):
+        """
+        index.mdの内容を作成します。
+        """
 
         channel_text_list = []
         channel_url_base = f"{self.repository.html_url}/blob/{self.branch_name}/channels"
@@ -61,6 +64,9 @@ class Reporter:
         )
 
     def create_git_tree(self):
+        """
+        サーバー情報を元にInputGitTreeElementを作成しGitTreeにまとめます。
+        """
         channel_elements = []
         sorted_by_category = util.sort_category_position(self.guild.by_category())
         for category, channels in sorted_by_category:
@@ -87,7 +93,11 @@ class Reporter:
         tree = self.repository.create_git_tree(channel_elements + role_elements + member_elements + [index_element, guild_element])
         return tree
 
-    def push(self,**kwargs):
+    def push(self,**kwargs) -> str:
+        """
+        GitHub上にコミットを作成しサーバー設定を反映します。
+        作成後、リポジトリURLを返却します。
+        """
         tree = self.create_git_tree()
 
         repo = self.repository
@@ -96,3 +106,4 @@ class Reporter:
         parents = [repo.get_git_commit(c.sha) for c in repo.get_commits()]
         commit = repo.create_git_commit(kwargs.get("commit_title","commit"),tree,parents)
         ref.edit(commit.sha,force=True)
+        return repo.html_url
